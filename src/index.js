@@ -74,8 +74,8 @@ export default class Gantt {
 
     setup_options(options) {
         const default_options = {
+            width: 30,
             header_height: 50,
-            column_width: 30,
             step: 24,
             view_modes: [...Object.values(VIEW_MODE)],
             bar_height: 20,
@@ -88,7 +88,10 @@ export default class Gantt {
             custom_popup_html: null,
             language: 'en',
         };
+
         this.options = Object.assign({}, default_options, options);
+
+        this.options.column_width = this.options.width;
     }
 
     setup_tasks(tasks) {
@@ -196,10 +199,10 @@ export default class Gantt {
             this.options.column_width = 140;
         } else if (view_mode === VIEW_MODE.MONTH) {
             this.options.step = 24 * 30;
-            this.options.column_width = 120;
+            this.options.column_width = this.options.width * 4;
         } else if (view_mode === VIEW_MODE.YEAR) {
             this.options.step = 24 * 365;
-            this.options.column_width = 120;
+            this.options.column_width = this.options.width * 4;
         }
     }
 
@@ -223,14 +226,24 @@ export default class Gantt {
 
         this.gantt_start = date_utils.start_of(this.gantt_start, 'day');
         this.gantt_end = date_utils.start_of(this.gantt_end, 'day');
+        // console.log(this.gantt_start);
+        // console.log(this.gantt_end);
 
         // add date padding on both sides
         if (this.view_is([VIEW_MODE.QUARTER_DAY, VIEW_MODE.HALF_DAY])) {
             this.gantt_start = date_utils.add(this.gantt_start, -7, 'day');
             this.gantt_end = date_utils.add(this.gantt_end, 7, 'day');
         } else if (this.view_is(VIEW_MODE.MONTH)) {
-            this.gantt_start = date_utils.start_of(this.gantt_start, 'year');
-            this.gantt_end = date_utils.add(this.gantt_end, 1, 'year');
+            if (this.gantt_start.getMonth() < 6) {
+                this.gantt_start = date_utils.add(this.gantt_start, - 12 - this.gantt_start.getMonth(), 'month');
+            } else {
+                this.gantt_start = date_utils.add(this.gantt_start, - 12, 'month');
+            }
+            if (this.gantt_end.getMonth() < 6) {
+                this.gantt_end = date_utils.add(this.gantt_end, 12 + 6 - this.gantt_end.getMonth(), 'month');
+            } else {
+                this.gantt_end = date_utils.add(this.gantt_end, 12, 'month');
+            }
         } else if (this.view_is(VIEW_MODE.YEAR)) {
             this.gantt_start = date_utils.add(this.gantt_start, -2, 'year');
             this.gantt_end = date_utils.add(this.gantt_end, 2, 'year');
@@ -402,10 +415,8 @@ export default class Gantt {
             });
 
             if (this.view_is(VIEW_MODE.MONTH)) {
-                tick_x +=
-                    (date_utils.get_days_in_month(date) *
-                        this.options.column_width) /
-                    30;
+                tick_x += (date_utils.get_days_in_month(date) * this.options.column_width) / 30;
+                tick_x -= 0.6;
             } else {
                 tick_x += this.options.column_width;
             }

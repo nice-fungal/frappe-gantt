@@ -314,6 +314,7 @@ export default class Bar {
         if (this.gantt.view_is('Month')) {
             const diff = date_utils.diff(task_start, gantt_start, 'day');
             x = (diff * column_width) / 30;
+            x -= 1.2 * (diff / 30 / 3);
         }
         return x;
     }
